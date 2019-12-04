@@ -91,27 +91,36 @@ class TextProgressBar:
         stdout = sys.stdout
         if linenum is not None:
             stdout.write("\033[{}H".format(linenum))
-        stdout.write("\r " + '{: ^20s}'.format(self.label) + " : |")
-        sys.stdout.write(
-            redstart + (self.backchar * self.width) + whitestart + "|")
+        stdout.write("\r " + '{: ^20s}'.format(self.label) + " |")
+        stdout.write(
+            redstart + (self.backchar * self.width) + whitestart + "| ")
 
         # Show the trailing numeric info
         if self.show_percent:
             perc = (self.value / self.end) * 100
-            sys.stdout.write("{:3.1f}%".format(perc))
+            stdout.write("{:3.1f}%".format(perc))
         else:
-            sys.stdout.write(str(self.value) + " of " + str(self.end))
+            stdout.write(str(self.value) + " of " + str(self.end))
             if self.suffix:
-                sys.stdout.write(" {}".format(self.suffix))
+                stdout.write(" {}".format(self.suffix))
 
-        sys.stdout.write("\r " + '{: ^20s}'.format(self.label) + " : |")
+        # Save cursor position in terminal
+        stdout.write("\033[s")
 
-        sys.stdout.write(greenstart)
+        stdout.write("\r " + '{: ^20s}'.format(self.label) + " |")
+
+        stdout.write(greenstart)
         for x in range(self.start, count):
-            sys.stdout.write(self.frontchar)
-        sys.stdout.write(whitestart)
+            stdout.write(self.frontchar)
+        stdout.write(whitestart)
 
-        sys.stdout.flush()
+        # Restore cursor position to the end of the count/percent text
+        stdout.write("\033[u")
+
+        # Clear to end of line
+        stdout.write("\033[K")
+
+        stdout.flush()
         if (self.complete):
             print
 
