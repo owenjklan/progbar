@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: latin-1 -*-
 from __future__ import division
 import time
 import sys
@@ -7,22 +8,11 @@ import random
 
 class TextProgressBar:
     """
-    Text-mode progress bar supporting labels, colour and numeric output.
+    Text-mode progress bar supporting labels, colour and numeric or percent
+    output. 
 
-    label: will be truncated to 16 characters by default. Shown at left
-    width: how many characters wide the progress bar will be
-    start: beginning value for the progress bar
-    end:   ending value for the progress bar when at "100%"
-    style: One of:
-        SYTLE_HASHES:      |###====|
-        SYTLE_BOXES1:      |▉▉▉▉▉░░|
-        STYLE_UNDERSCORED: |▉▉▉____|
-        STYLE_BOXES2:   -- Not Currently Implemented -- (Dec. 2019)
-    show_percent:   False:       20 of 100
-                    True:           20%
-    suffix:  Text to append to numeric/percentage readout.
-             Example:  suffix="bytes"  ==>    1023 of 2048 bytes
-             Note: Suffix is NOT displayed when 'show_percent' is True
+    Several styles available:
+
     """
 
     STYLE_HASHES = 1
@@ -32,6 +22,23 @@ class TextProgressBar:
 
     def __init__(self, label, width, start, end, style=STYLE_HASHES,
                  show_percent=False, suffix=None):
+        """
+        label: will be truncated to 16 characters by default. Shown at left
+        width: how many characters wide the progress bar will be
+        start: beginning value for the progress bar
+        end:   ending value for the progress bar when at "100%"
+        style: One of:
+            SYTLE_HASHES:      |###====|
+            SYTLE_BOXES1:      |▉▉▉▉▉░░|
+            SYTLE_BOXES2:      |▉▉▉▉▉░░|
+            STYLE_UNDERSCORED: |▉▉▉____|
+            STYLE_BOXES2:   -- Not Currently Implemented -- (Dec. 2019)
+        show_percent:   False:       20 of 100
+                        True:           20%
+        suffix:  Text to append to numeric/percentage readout.
+                 Example:  suffix="bytes"  ==>    1023 of 2048 bytes
+                 Note: Suffix is NOT displayed when 'show_percent' is True
+        """
         self.label = label
         if (len(label) > 16):
             self.label = label[0:7] + "..." + label[-6:]
@@ -66,7 +73,14 @@ class TextProgressBar:
         else:
             return '#'
 
-    def render(self):
+    def render(self, linenum=None):
+        """
+        Clear the current line and render the current value of the progress
+        bar.
+
+        Optional linenum will move cursor to a given line before rendering.
+        The top line is line 0.
+        """
         if (self.value >= self.end):
             self.value = self.end
             self.complete = True
@@ -75,6 +89,8 @@ class TextProgressBar:
         whitestart = "\033[37m\033[22m"
         greenstart = "\033[32m\033[1m"
         stdout = sys.stdout
+        if linenum is not None:
+            stdout.write("\033[{}H".format(linenum))
         stdout.write("\r " + '{: ^20s}'.format(self.label) + " : |")
         sys.stdout.write(
             redstart + (self.backchar * self.width) + whitestart + "|")
@@ -120,8 +136,6 @@ class TextProgressBar:
 #  percent: "percent" to display percentage. Anything else to use X of Y
 #  suffix: optional suffix
 #
-#  
-#
 
 if __name__ == "__main__":
     percent = False
@@ -151,6 +165,18 @@ if __name__ == "__main__":
         for temp in range(0, srcfile[1]):
             tbr.add(random.randint(1, 50))
             tbr.render()
+            time.sleep(0.1)
+            if (tbr.complete):
+                break
+
+    for srcfile in sourcefiles:
+        tbr = TextProgressBar(
+            srcfile[0], 80, 0, srcfile[1],
+            style=style,
+            show_percent=percent, suffix=suffix)
+        for temp in range(0, srcfile[1]):
+            tbr.add(random.randint(1, 50))
+            tbr.render(linenum=10)
             time.sleep(0.1)
             if (tbr.complete):
                 break
