@@ -3,13 +3,14 @@
 from __future__ import division
 import time
 import sys
+from sys import stdout
 import random
 
 
 class TextProgressBar:
     """
     Text-mode progress bar supporting labels, colour and numeric or percent
-    output. 
+    output.
 
     Several styles available:
 
@@ -88,7 +89,7 @@ class TextProgressBar:
         redstart = "\033[31m"
         whitestart = "\033[37m\033[22m"
         greenstart = "\033[32m\033[1m"
-        stdout = sys.stdout
+
         if linenum is not None:
             stdout.write("\033[{}H".format(linenum))
         stdout.write("\r " + '{: ^20s}'.format(self.label) + " |")
