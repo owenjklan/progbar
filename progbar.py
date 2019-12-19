@@ -22,7 +22,7 @@ class TextProgressBar:
     STYLE_UNDERSCORED = 4
 
     def __init__(self, label, width, start, end, style=STYLE_HASHES,
-                 show_percent=False, suffix=None):
+                 show_percent=False, suffix=None, console_lock=None):
         """
         label: will be truncated to 16 characters by default. Shown at left
         width: how many characters wide the progress bar will be
@@ -53,6 +53,7 @@ class TextProgressBar:
         self.frontchar = self._determine_frontchar(style)
         self.show_percent = show_percent
         self.suffix = suffix
+        self.lock = console_lock
 
     def _determine_backchar(cls, style):
         if style == cls.STYLE_HASHES:
@@ -90,6 +91,9 @@ class TextProgressBar:
         whitestart = "\033[37m\033[22m"
         greenstart = "\033[32m\033[1m"
 
+        if self.lock:
+            self.lock.acquire()
+
         if linenum is not None:
             stdout.write("\033[{}H".format(linenum))
         stdout.write("\r " + '{: ^20s}'.format(self.label) + " |")
@@ -124,6 +128,9 @@ class TextProgressBar:
         stdout.flush()
         if (self.complete):
             print
+
+        if self.lock:
+            self.lock.release()
 
     def add(self, value):
         """
